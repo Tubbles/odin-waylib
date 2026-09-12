@@ -1,8 +1,18 @@
 # odin-waylib
 
-A raylib-shaped API for Odin plugins compiled to WebAssembly. Plugin code imports it and writes raylib calls; the host engine implements them as wasm imports under the module `host`. Types are raylib's own through `vendor:raylib` (`Color`, `Vector2`, `Rectangle`, `TraceLogLevel`, plus the named colours), so raylib knowledge carries over.
+A raylib-shaped API for Odin plugins compiled to WebAssembly. Plugin code imports only this package and writes raylib code; the host engine implements the significant procedures as wasm imports under the module `host`.
 
-Procedures so far: `TraceLog(level, message: string)` and `DrawRectangleV(position, size, color)`.
+Three kinds of things are in the package:
+
+- **Host procedures**, the foreign block in `waylib.odin`. Anything that does real work goes through the engine this way. So far: `TraceLog(level, message: string)` and `DrawRectangleV(position, size, color)`.
+- **Every raylib type** and the named colours, re-exported in `raylib_types.odin` through `vendor:raylib`, so `Vector2`, `Color`, `Rectangle`, `KeyboardKey` and the rest are the same types the engine uses.
+- **raylib's pure helpers**, raymath and the easings, re-exported in `raymath.odin` and `easings.odin`. They are implemented in Odin and compile into the plugin, nothing crosses the boundary.
+
+The re-export files are generated. After an Odin update run:
+
+```sh
+./generate.py "$(odin root)/vendor/raylib"
+```
 
 ## Plugin side
 
@@ -15,11 +25,12 @@ odin build plugin -target:freestanding_wasm32 -no-entry-point -collection:module
 ```odin
 import wl "module:waylib"
 
-wl.DrawRectangleV({10, 10}, {16, 16}, wl.YELLOW)
+position := wl.Vector2Rotate({100, 0}, angle)
+wl.DrawRectangleV(position, {16, 16}, wl.YELLOW)
 wl.TraceLog(.INFO, "hello from the plugin")
 ```
 
-Plugins may use `vendor:raylib` for anything that is not a procedure call, such as raymath. Calling a `vendor:raylib` procedure pulls raylib's browser build into the module, and the host cannot instantiate that. The package refuses to compile for non-wasm targets.
+Do not import `vendor:raylib` in a plugin. Its types and helpers are all available here, and calling one of its real procedures pulls raylib's browser build into the module, which the host cannot instantiate. The package refuses to compile for non-wasm targets.
 
 ## Host side
 
