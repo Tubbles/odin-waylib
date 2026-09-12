@@ -6,17 +6,17 @@ Procedures so far: `TraceLog(level, message: string)` and `DrawRectangleV(positi
 
 ## Plugin side
 
-Check out this repository as `waylib/` in a directory passed as the `shared` collection:
+Check out this repository as `module/waylib`, for example as a git submodule, and pass `module` as a collection:
 
 ```sh
-odin build plugin -target:freestanding_wasm32 -no-entry-point -collection:shared=shared
+odin build plugin -target:freestanding_wasm32 -no-entry-point -collection:module=module
 ```
 
 ```odin
-import rl "shared:waylib"
+import wl "module:waylib"
 
-rl.DrawRectangleV({10, 10}, {16, 16}, rl.YELLOW)
-rl.TraceLog(.INFO, "hello from the plugin")
+wl.DrawRectangleV({10, 10}, {16, 16}, wl.YELLOW)
+wl.TraceLog(.INFO, "hello from the plugin")
 ```
 
 Plugins may use `vendor:raylib` for anything that is not a procedure call, such as raymath. Calling a `vendor:raylib` procedure pulls raylib's browser build into the module, and the host cannot instantiate that. The package refuses to compile for non-wasm targets.
