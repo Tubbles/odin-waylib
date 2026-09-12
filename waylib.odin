@@ -1,8 +1,6 @@
 // The API a plugin gets from the engine, shaped like raylib so raylib knowledge carries
-// over. Three kinds of things live in this package:
+// over. Two kinds of things live in this package:
 //
-//   - The host procedures in the foreign block below. Anything that does real work,
-//     drawing, input, resources, goes through the engine this way.
 //   - Every raylib type and the named colours, re-exported in raylib_types.odin, so
 //     plugins use the same Vector2, Color, Rectangle or KeyboardKey the engine does.
 //   - raylib's pure helpers, raymath and the easings, re-exported in raymath.odin and
@@ -13,11 +11,6 @@
 // procedures would pull raylib's browser build into the module, which the engine
 // cannot instantiate, so plugins should import only this package.
 //
-// Owned by the engine that implements it. The foreign block below is one half of the
-// plugin ABI; the other half is the engine's table of host functions under the "host"
-// module (in odin-game: game_host_functions in plugin_host.odin), where every declaration
-// here has an entry with the matching wasm signature. Change both together.
-//
 // On the wire, wasm passes structs and strings by pointer, so each such argument is an
 // i32 offset into the plugin's memory that the engine reads and bounds-checks. Scalars
 // and enums cross as themselves.
@@ -25,13 +18,4 @@ package waylib
 
 when ODIN_ARCH != .wasm32 && ODIN_ARCH != .wasm64p32 {
 	#panic("module:waylib is for plugins built to wasm; the engine uses vendor:raylib directly")
-}
-
-foreign import host "host"
-
-@(default_calling_convention = "c")
-foreign host {
-	// Logs through the engine's logger, prefixed as a plugin message.
-	TraceLog :: proc(level: TraceLogLevel, message: string) ---
-	DrawRectangleV :: proc(position: Vector2, size: Vector2, color: Color) ---
 }
